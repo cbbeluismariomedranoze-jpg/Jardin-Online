@@ -1,0 +1,151 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Iniciar sesión - Jardín Online</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #e8f5e9;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+}
+
+.contenedor {
+    background: white;
+    width: 360px;
+    max-width: 90%;
+    padding: 40px;
+    border-radius: 15px;
+    box-shadow: 0 5px 20px #0002;
+    text-align: center;
+}
+
+h2 {
+    color: #205b37;
+}
+
+input {
+    width: 100%;
+    padding: 13px;
+    margin: 12px 0;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-sizing: border-box;
+}
+
+button {
+    background: #27834c;
+    color: white;
+    padding: 14px;
+    width: 100%;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-top: 10px;
+}
+
+button:hover {
+    background: #185e35;
+}
+
+a {
+    color: #27834c;
+}
+
+#mensaje {
+    margin-top: 20px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="contenedor">
+    <h2>🌿 Jardín Online</h2>
+    <h3>Iniciar sesión</h3>
+
+    <form id="formLogin">
+        <input
+            type="email"
+            id="correo"
+            placeholder="Correo electrónico"
+            required
+        >
+
+        <input
+            type="password"
+            id="contrasena"
+            placeholder="Contraseña"
+            required
+        >
+
+        <button type="submit">Ingresar</button>
+    </form>
+
+    <p id="mensaje"></p>
+
+    <p>¿No tienes cuenta?
+        <a href="/registro.html">Regístrate</a>
+    </p>
+
+    <a href="/">Volver a la tienda</a>
+</div>
+
+<script>
+document.getElementById('formLogin')
+.addEventListener('submit', async (evento) => {
+    evento.preventDefault();
+
+    const correo =
+        document.getElementById('correo').value;
+
+    const contrasena =
+        document.getElementById('contrasena').value;
+
+    const mensaje =
+        document.getElementById('mensaje');
+
+    try {
+        const respuesta = await fetch('/api/login', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                correo,
+                contrasena
+            })
+        });
+
+        const resultado = await respuesta.json();
+
+        if (respuesta.ok) {
+            mensaje.style.color = 'green';
+            mensaje.textContent =
+                'Bienvenido, ' +
+                resultado.usuario.nombre +
+                ' | Rol: ' +
+                resultado.usuario.rol;
+        } else {
+            mensaje.style.color = 'red';
+            mensaje.textContent = resultado.mensaje;
+        }
+
+    } catch (error) {
+        mensaje.style.color = 'red';
+        mensaje.textContent =
+            'Error al conectar con el servidor';
+    }
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,144 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Registro - Jardín Online</title>
+
+<style>
+body {
+    font-family: Arial, sans-serif;
+    background: #e8f5e9;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+}
+
+.formulario {
+    background: white;
+    padding: 35px;
+    border-radius: 15px;
+    width: 350px;
+    max-width: 90%;
+    box-shadow: 0 5px 20px #0002;
+}
+
+h2 {
+    color: #205b37;
+    text-align: center;
+}
+
+input {
+    display: block;
+    width: 100%;
+    padding: 12px;
+    margin: 15px 0;
+    border: 1px solid #ccc;
+    border-radius: 7px;
+    box-sizing: border-box;
+}
+
+button {
+    background: #27834c;
+    color: white;
+    padding: 13px;
+    width: 100%;
+    border: none;
+    border-radius: 7px;
+    cursor: pointer;
+}
+
+button:hover {
+    background: #185e35;
+}
+
+#mensaje {
+    text-align: center;
+}
+
+a {
+    color: #27834c;
+}
+</style>
+</head>
+
+<body>
+<div class="formulario">
+    <h2>🌱 Crear cuenta</h2>
+
+    <form id="formRegistro">
+        <input
+            type="text"
+            id="nombre"
+            placeholder="Nombre completo"
+            required
+        >
+
+        <input
+            type="email"
+            id="correo"
+            placeholder="Correo electrónico"
+            required
+        >
+
+        <input
+            type="password"
+            id="contrasena"
+            placeholder="Contraseña (mínimo 8 caracteres)"
+            minlength="8"
+            required
+        >
+
+        <button type="submit">Registrarse</button>
+    </form>
+
+    <p id="mensaje"></p>
+
+    <p style="text-align:center">
+        <a href="/">Volver a la tienda</a>
+    </p>
+</div>
+
+<script>
+document.getElementById('formRegistro')
+.addEventListener('submit', async (evento) => {
+    evento.preventDefault();
+
+    const nombre = document.getElementById('nombre').value;
+    const correo = document.getElementById('correo').value;
+    const contrasena = document.getElementById('contrasena').value;
+    const mensaje = document.getElementById('mensaje');
+
+    try {
+        const respuesta = await fetch('/api/registro', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                nombre,
+                correo,
+                contrasena
+            })
+        });
+
+        const resultado = await respuesta.json();
+
+        mensaje.textContent = resultado.mensaje;
+        mensaje.style.color = respuesta.ok ? 'green' : 'red';
+
+        if (respuesta.ok) {
+            document.getElementById('formRegistro').reset();
+        }
+
+    } catch (error) {
+        mensaje.textContent = 'Error de conexión con el servidor';
+        mensaje.style.color = 'red';
+    }
+});
+</script>
+</body>
+</html>

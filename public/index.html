@@ -1,0 +1,310 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Jardín Online</title>
+  <style>
+    * { box-sizing: border-box; }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f2f8f0;
+      color: #23432c;
+    }
+
+    header {
+      background: #205b37;
+      color: white;
+      padding: 22px 8%;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 15px;
+    }
+
+    header h2 { margin: 0; }
+
+    nav a {
+      color: white;
+      text-decoration: none;
+      margin-left: 20px;
+    }
+
+    .hero {
+      text-align: center;
+      background: #d8ebd5;
+      padding: 65px 20px;
+    }
+
+    .hero h1 {
+      font-size: 38px;
+      margin-bottom: 12px;
+    }
+
+    .contenedor {
+      padding: 35px 8%;
+      max-width: 1250px;
+      margin: auto;
+    }
+
+    .productos {
+      display: grid;
+      grid-template-columns:
+        repeat(auto-fit, minmax(220px, 1fr));
+      gap: 24px;
+    }
+
+    .tarjeta {
+      background: white;
+      border-radius: 15px;
+      padding: 24px;
+      text-align: center;
+      box-shadow: 0 4px 15px #00000012;
+    }
+
+    .planta {
+      font-size: 75px;
+      background: #e7f3e4;
+      padding: 22px;
+      border-radius: 12px;
+    }
+
+    .precio {
+      color: #178044;
+      font-size: 23px;
+      font-weight: bold;
+    }
+
+    button {
+      background: #27834c;
+      color: white;
+      border: none;
+      padding: 13px 20px;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    button:hover { background: #185e35; }
+
+    footer {
+      text-align: center;
+      padding: 24px;
+      background: #205b37;
+      color: white;
+      margin-top: 40px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h2>🌿 Jardín Online</h2>
+  <nav>
+    <a href="/">Inicio</a>
+    <a href="#catalogo">Catálogo</a>
+  </nav>
+</header>
+
+<section class="hero">
+  <h1>Bienvenido a Jardín Online 🌸</h1>
+  <p>Las mejores plantas para darle vida a tu hogar.</p>
+  <a href="#catalogo">Explorar catálogo</a>
+</section>
+
+<main class="contenedor" id="catalogo">
+  <h2>🌱 Nuestro catálogo de plantas</h2>
+  
+<p>🛒 Productos en carrito:
+  <strong id="contador-carrito">0</strong>
+</p>
+
+<div id="detalle-carrito"></div>
+
+<button id="confirmar-compra">
+    🛒 Confirmar compra
+</button>
+
+  <div class="productos" id="productos">
+    Cargando productos...
+  </div>
+</main>
+
+<footer>
+  Jardín Online © 2026
+</footer>
+
+<script>
+    
+const carrito = [];
+
+function mostrarCarrito() {
+    const detalle = document.getElementById('detalle-carrito');
+    detalle.replaceChildren();
+
+    let total = 0;
+
+    carrito.forEach((producto, indice) => {
+        total += producto.precio;
+
+        const fila = document.createElement('p');
+        fila.textContent =
+            `${producto.nombre} - Bs ${producto.precio.toFixed(2)} `;
+
+        const quitar = document.createElement('button');
+        quitar.textContent = 'Quitar';
+
+        quitar.addEventListener('click', () => {
+            carrito.splice(indice, 1);
+            mostrarCarrito();
+        });
+
+        fila.appendChild(quitar);
+        detalle.appendChild(fila);
+    });
+
+    const totalElemento = document.createElement('h3');
+    totalElemento.textContent = `Total: Bs ${total.toFixed(2)}`;
+    detalle.appendChild(totalElemento);
+
+    document.getElementById('contador-carrito')
+        .textContent = carrito.length;
+}
+
+  async function cargarProductos() {
+    const contenedor = document.getElementById('productos');
+
+    try {
+      const respuesta = await fetch('/api/productos');
+
+      if (!respuesta.ok) {
+        throw new Error('Error al consultar productos');
+      }
+
+      const productos = await respuesta.json();
+      contenedor.replaceChildren();
+
+      for (const producto of productos) {
+        const tarjeta = document.createElement('div');
+        tarjeta.className = 'tarjeta';
+
+        const imagen = document.createElement('div');
+        imagen.className = 'planta';
+
+        const iconos = {
+          Rosa: '🌹',
+          Cactus: '🌵',
+          Helecho: '🌿',
+          Lavanda: '💐'
+        };
+
+        imagen.textContent = iconos[producto.nombre] || '🪴';
+
+        const titulo = document.createElement('h3');
+        titulo.textContent = producto.nombre;
+
+        const descripcion = document.createElement('p');
+        descripcion.textContent = producto.descripcion;
+
+        const categoria = document.createElement('p');
+        categoria.textContent = producto.categoria;
+
+        const precio = document.createElement('p');
+        precio.className = 'precio';
+        precio.textContent =
+          'Bs ' + Number(producto.precio).toFixed(2);
+
+        const stock = document.createElement('p');
+        stock.textContent = 'Disponibles: ' + producto.stock;
+
+        
+const boton = document.createElement('button');
+
+boton.textContent = 'Agregar al carrito';
+
+boton.disabled = Number(producto.stock) <= 0;
+
+boton.addEventListener('click', () => {
+    carrito.push({
+        id_producto: producto.id_producto,
+        nombre: producto.nombre,
+        precio: Number(producto.precio)
+    });
+
+    mostrarCarrito();
+});
+
+tarjeta.append(
+    imagen, titulo, descripcion,
+    categoria, precio, stock, boton
+);
+
+
+        contenedor.appendChild(tarjeta);
+      }
+    } catch (error) {
+      contenedor.textContent =
+        'No se pudieron cargar los productos.';
+    }
+  }
+
+document.getElementById('confirmar-compra')
+.addEventListener('click', async () => {
+
+    if (carrito.length === 0) {
+        alert('Primero agrega plantas al carrito');
+        return;
+    }
+
+    const boton = document.getElementById('confirmar-compra');
+    boton.disabled = true;
+
+    try {
+        const items = carrito.map(producto => ({
+            id_producto: producto.id_producto,
+            cantidad: 1
+        }));
+
+        const respuesta = await fetch('/api/pedidos', {
+            method: 'POST',
+            credentials: 'same-origin',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({ items })
+        });
+
+        const resultado = await respuesta.json();
+
+        if (!respuesta.ok) {
+            alert(resultado.mensaje);
+            return;
+        }
+
+        alert(
+            '✅ Compra registrada correctamente\n' +
+            'Pedido: #' + resultado.id_pedido + '\n' +
+            'Total: Bs ' + Number(resultado.total).toFixed(2)
+        );
+
+        carrito.length = 0;
+        mostrarCarrito();
+
+        await cargarProductos();
+
+    } catch (error) {
+        console.error(error);
+        alert('Error al registrar la compra');
+    } finally {
+        boton.disabled = false;
+    }
+});
+
+  cargarProductos();
+</script>
+
+</body>
+</html>

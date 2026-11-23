@@ -1,0 +1,364 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Panel del Vendedor - Jardín Online</title>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f0f7ee;
+    color: #23432c;
+}
+
+header {
+    background: #205b37;
+    color: white;
+    padding: 22px 8%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+header h2 {
+    margin: 0;
+}
+
+header a {
+    color: white;
+    text-decoration: none;
+}
+
+main {
+    padding: 40px 8%;
+}
+
+h1 {
+    color: #205b37;
+}
+
+.resumen {
+    display: flex;
+    gap: 20px;
+    flex-wrap: wrap;
+    margin: 25px 0;
+}
+
+.tarjeta {
+    background: white;
+    padding: 25px;
+    border-radius: 12px;
+    min-width: 220px;
+    box-shadow: 0 4px 12px #0001;
+}
+
+.tarjeta h2 {
+    color: #27834c;
+}
+
+.tabla-contenedor {
+    overflow-x: auto;
+    background: white;
+    border-radius: 12px;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+th {
+    background: #27834c;
+    color: white;
+    padding: 15px;
+    text-align: left;
+}
+
+td {
+    padding: 15px;
+    border-bottom: 1px solid #ddd;
+}
+
+button {
+    background: #27834c;
+    border: none;
+    color: white;
+    padding: 12px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    margin-bottom: 20px;
+}
+
+button:hover {
+    background: #185e35;
+}
+
+#mensaje {
+    margin: 15px 0;
+}
+
+footer {
+    text-align: center;
+    padding: 20px;
+    margin-top: 50px;
+    background: #205b37;
+    color: white;
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h2>🌿 Jardín Online</h2>
+    <a href="/">Volver a la tienda</a>
+</header>
+
+<main>
+    <h1>👨‍💼 Panel del Vendedor</h1>
+    <p>Administración y consulta de pedidos</p>
+
+    <div class="resumen">
+        <div class="tarjeta">
+            <h3>Total de pedidos</h3>
+            <h2 id="totalPedidos">0</h2>
+        </div>
+
+        <div class="tarjeta">
+            <h3>Importe de pedidos</h3>
+            <h2 id="totalVentas">Bs 0.00</h2>
+        </div>
+    </div>
+
+<h2>📊 Reporte de ventas</h2>
+
+<div class="resumen">
+    <div class="tarjeta">
+        <h3>⏳ Pedidos pendientes</h3>
+        <h2 id="reportePendientes">0</h2>
+    </div>
+
+    <div class="tarjeta">
+        <h3>✅ Pedidos entregados</h3>
+        <h2 id="reporteEntregados">0</h2>
+    </div>
+
+    <div class="tarjeta">
+        <h3>💰 Total de ventas entregadas</h3>
+        <h2 id="reporteVentas">Bs 0.00</h2>
+    </div>
+</div>
+
+<p id="mensajeReporte"></p>
+
+    <h2>📦 Pedidos registrados</h2>
+
+    <button onclick="cargarPedidos()">
+        🔄 Actualizar pedidos
+    </button>
+
+    <p id="mensaje"></p>
+
+    <div class="tabla-contenedor">
+        <table>
+            <thead>
+                <tr>
+                    <th>N° Pedido</th>
+                    <th>Cliente</th>
+                    <th>Fecha</th>
+                    <th>Total</th>
+                    <th>Estado</th>
+                    
+<th>Acciones</th>
+
+                </tr>
+            </thead>
+
+            <tbody id="tablaPedidos"></tbody>
+        </table>
+    </div>
+</main>
+
+<footer>
+    Jardín Online © 2026
+</footer>
+
+<script>
+async function cargarPedidos() {
+    const tabla = document.getElementById('tablaPedidos');
+    const mensaje = document.getElementById('mensaje');
+
+    tabla.replaceChildren();
+    mensaje.textContent = 'Cargando pedidos...';
+
+    try {
+        const respuesta = await fetch('/api/vendedor/pedidos', {
+            credentials: 'same-origin'
+        });
+
+        if (respuesta.status === 403 ||
+            respuesta.status === 401) {
+            mensaje.textContent =
+                'Debes iniciar sesión como vendedor.';
+            return;
+        }
+
+        if (!respuesta.ok) {
+            throw new Error('Error al obtener pedidos');
+        }
+
+        const pedidos = await respuesta.json();
+
+        let importe = 0;
+
+        pedidos.forEach(pedido => {
+            importe += Number(pedido.total);
+
+            const fila = document.createElement('tr');
+
+            const valores = [
+                pedido.id_pedido,
+                pedido.cliente,
+                new Date(pedido.fecha_pedido)
+                    .toLocaleString('es-BO'),
+                'Bs ' + Number(pedido.total).toFixed(2),
+                pedido.estado
+            ];
+
+            valores.forEach(valor => {
+                const celda = document.createElement('td');
+                celda.textContent = valor;
+                fila.appendChild(celda);
+            });
+
+const celdaAcciones = document.createElement('td');
+
+if (pedido.estado === 'pendiente' ||
+    pedido.estado === 'confirmado') {
+
+    const boton = document.createElement('button');
+
+    const nuevoEstado = pedido.estado === 'pendiente'
+        ? 'confirmado'
+        : 'entregado';
+
+    boton.textContent = pedido.estado === 'pendiente'
+        ? '✅ Confirmar pedido'
+        : '📦 Marcar como entregado';
+
+    boton.addEventListener('click', async () => {
+        boton.disabled = true;
+
+        try {
+            const respuesta = await fetch(
+                `/api/vendedor/pedidos/${pedido.id_pedido}/estado`,
+                {
+                    method: 'PATCH',
+                    credentials: 'same-origin',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        estado: nuevoEstado
+                    })
+                }
+            );
+
+            const resultado = await respuesta.json();
+
+            if (!respuesta.ok) {
+                alert(resultado.mensaje);
+                return;
+            }
+
+            await cargarPedidos();
+            
+await cargarReporte();
+
+
+            document.getElementById('mensaje')
+                .textContent = '✅ ' + resultado.mensaje;
+
+        } catch (error) {
+            alert('Error al actualizar el pedido');
+        } finally {
+            boton.disabled = false;
+        }
+    });
+
+    celdaAcciones.appendChild(boton);
+
+} else {
+    celdaAcciones.textContent = 'Sin acciones';
+}
+
+fila.appendChild(celdaAcciones);
+
+            tabla.appendChild(fila);
+        });
+
+        document.getElementById('totalPedidos')
+            .textContent = pedidos.length;
+
+        document.getElementById('totalVentas')
+            .textContent = 'Bs ' + importe.toFixed(2);
+
+        mensaje.textContent = pedidos.length
+            ? ''
+            : 'Todavía no hay pedidos registrados.';
+
+    } catch (error) {
+        mensaje.textContent =
+            'No se pudieron cargar los pedidos.';
+    }
+}
+
+async function cargarReporte() {
+    const mensaje =
+        document.getElementById('mensajeReporte');
+
+    try {
+        const respuesta = await fetch(
+            '/api/vendedor/reporte',
+            { credentials: 'same-origin' }
+        );
+
+        if (!respuesta.ok) {
+            mensaje.textContent =
+                'No se pudo cargar el reporte. Verifica tu sesión de vendedor.';
+            return;
+        }
+
+        const datos = await respuesta.json();
+
+        document.getElementById('reportePendientes')
+            .textContent = datos.pendientes;
+
+        document.getElementById('reporteEntregados')
+            .textContent = datos.entregados;
+
+        document.getElementById('reporteVentas')
+            .textContent =
+                'Bs ' + Number(datos.total_ventas).toFixed(2);
+
+        mensaje.textContent = '';
+
+    } catch (error) {
+        mensaje.textContent =
+            'Error al cargar el reporte de ventas';
+    }
+}
+
+cargarPedidos();
+cargarReporte();
+</script>
+
+</body>
+</html>
